@@ -1,0 +1,14 @@
+{
+  amount: 10000,
+  time: "2026-03-19 03:00",
+  location: "Mumbai",
+  fraud_probability: 85,
+  risk_score: 70,
+  final_score: 155,
+  status: "FRAUD"
+}
+{
+  message: "High risk transaction detected",
+  level: "HIGH",
+  timestamp: ""
+}
