@@ -73,7 +73,6 @@ if(!isset($_SESSION['user'])){
 let pieChart, lineChart;
 let lastFraudCount = 0;
 
-// ✅ Initialize charts
 function initCharts(){
     pieChart = new Chart(document.getElementById("pieChart"), {
         type: "doughnut",
@@ -96,86 +95,12 @@ function initCharts(){
     });
 }
 
-// ✅ Fetch data from Flask
-function fetchData() {
-    
-    .then(res => res.json())
-    .then(data => {
-
-        // 🚨 Fraud alert
-        if (data.fraud > lastFraudCount) {
-            alert("🚨 New Fraud Detected!");
-        }
-        lastFraudCount = data.fraud;
-
-        // Cards
-        document.getElementById("fraudCount").innerText = data.fraud;
-        document.getElementById("safeCount").innerText = data.safe;
-        document.getElementById("total").innerText = data.fraud + data.safe;
-
-        // Table
-        let table = document.getElementById("tableData");
-        table.innerHTML = "";
-
-        if(data.rows){
-            data.rows.forEach(row => {
-                table.innerHTML += `
-                    <tr>
-                        <td>${row.amount}</td>
-                        <td>${row.hour ?? '-'}</td>
-                        <td>${row.location ?? '-'}</td>
-                        <td style="color:${row.status=='FRAUD'?'red':'lightgreen'}">
-                            ${row.status}
-                        </td>
-                        <td>${row.score ?? '-'}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        // Charts
-        pieChart.data.datasets[0].data = [data.fraud, data.safe];
-        pieChart.update();
-
-        lineChart.data.labels = data.labels;
-        lineChart.data.datasets[0].data = data.values;
-        lineChart.update();
-
-    })
-    .catch(err => console.log("Error:", err));
-}
-
-// ✅ Correct execution order
-initCharts();
-fetchData();
-setInterval(fetchData, 3000);
-</script></div> <!-- container end -->
-
-<!-- ✅ ADD TABLE HERE -->
-<div class="table-container">
-    <h2>📋 Transaction History</h2>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Amount</th>
-                <th>Hour</th>
-                <th>Location</th>
-                <th>Status</th>
-                <th>Score</th>
-            </tr>
-        </thead>
-        <tbody id="tableData"></tbody>
-    </table>
-</div>
-
-<script>
 function fetchData() {
     fetch("https://fraud-detection-system-jg0m.onrender.com/get-data")
     .then(res => res.json())
     .then(data => {
 
-        // 🚨 Fraud alert
+        // 🚨 Alert
         if (data.fraud > lastFraudCount) {
             alert("🚨 New Fraud Detected!");
         }
@@ -211,13 +136,12 @@ function fetchData() {
         lineChart.data.labels = data.labels;
         lineChart.data.datasets[0].data = data.values;
         lineChart.update();
-    })
-    .catch(err => console.log("Error:", err));
+    });
 }
-setInterval(fetchData, 3000);
 
-
+// Run
 initCharts();
+fetchData();
 setInterval(fetchData, 3000);
 </script>
 

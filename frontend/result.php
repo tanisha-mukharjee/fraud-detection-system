@@ -46,7 +46,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         <?= $response['status'] ?>
     </h2>
 
-    <p>Probability: <?= $response['probability'] * 100 ?>%</p>
+    <p>Probability: <?= round($response['probability'] * 100 ,2)?>%</p>
     <p>Score: <?= $response['score'] ?></p>
 
     <p><b>Risk Level:</b> <?= $response['risk'] ?></p>
