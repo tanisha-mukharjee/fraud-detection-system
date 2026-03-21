@@ -77,10 +77,13 @@ A modern **glassmorphism UI dashboard** with:
 ## 📸 Screenshots
 
 ### 🏠 Home Page
-![Home](Screenshots/home.png)
+![Home](Screenshots/index.png)
 
 ### 🤖 Result Page
 ![Result](Screenshots/result.png)
+
+### 🚨 Fraud Alert 
+![Alert](Screenshots/alert.png)
 
 ### 📊 Dashboard
 ![Dashboard](Screenshots/dashboard1.png)

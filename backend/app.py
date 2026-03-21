@@ -18,7 +18,9 @@ try:
 
     model = pickle.load(open(model_path, "rb"))
     scaler = pickle.load(open(scaler_path, "rb"))
-    print("✅ Model Loaded")
+
+    print("✅ Model Loaded Successfully")
+
 except Exception as e:
     print("❌ Model Load Error:", e)
     model = None
@@ -44,46 +46,45 @@ except Exception as e:
 # 🧠 PREDICT ROUTE
 # ==============================
 
-
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
         data = request.get_json()
 
-        # BASIC INPUT
+        # INPUTS
         amount = float(data.get("amount", 0))
         hour = float(data.get("hour", 0))
         location = float(data.get("location", 0))
-
-        # NEW FEATURES
         previous_amount = float(data.get("previous_amount", amount))
         transaction_count = float(data.get("transaction_count", 1))
         time_gap = float(data.get("time_gap", 1))
 
         # ==============================
-        # FEATURE VECTOR (30 features)
+        # 🔥 RULE-BASED FRAUD LOGIC
         # ==============================
-        features = np.zeros(30)
+        score = 0
 
-        features[0] = amount
-        features[1] = hour
-        features[2] = location
-        features[3] = previous_amount
-        features[4] = transaction_count
-        features[5] = time_gap
+        if amount > previous_amount * 2:
+            score += 30
 
-        # SCALE
-        features_scaled = scaler.transform([features]) if scaler else [features]
+        if transaction_count > 5:
+            score += 20
 
-        # MODEL
-        if model:
-            prediction = model.predict(features_scaled)[0]
-            probability = model.predict_proba(features_scaled)[0][1]
-        else:
-            probability = 0.7 if amount > 5000 else 0.2
-            prediction = 1 if probability > 0.5 else 0
+        if hour < 6 or hour > 22:
+            score += 15
 
-        score = int(probability * 100)
+        if location == 1:
+            score += 20
+
+        if time_gap < 2:
+            score += 15
+
+        if score > 100:
+            score = 100
+
+        probability = score / 100
+        prediction = 1 if score > 50 else 0
+
         status = "FRAUD" if prediction == 1 else "SAFE"
 
         # ==============================
@@ -97,7 +98,7 @@ def predict():
             risk = "LOW RISK"
 
         # ==============================
-        # 🤖 EXPLAINABLE AI
+        # 🤖 AI REASONS
         # ==============================
         reasons = []
 
@@ -120,7 +121,7 @@ def predict():
             reasons.append("Normal transaction behavior")
 
         # ==============================
-        # 🚨 AUTO ACTION
+        # 🚨 ACTION
         # ==============================
         if score > 80:
             action = "BLOCKED"
@@ -149,7 +150,7 @@ def predict():
 
         return jsonify({
             "status": status,
-            "probability": score,
+            "probability": int(probability * 100),
             "score": score,
             "risk": risk,
             "action": action,
