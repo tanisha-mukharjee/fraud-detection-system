@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from pymongo import MongoClient
 import pickle
 import numpy as np
+from datetime import datetime
 import os
 
 app = Flask(__name__)
@@ -42,90 +43,122 @@ except Exception as e:
 # ==============================
 # 🧠 PREDICT ROUTE
 # ==============================
+
+
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
         data = request.get_json()
 
-        # ✅ Get input safely
+        # BASIC INPUT
         amount = float(data.get("amount", 0))
         hour = float(data.get("hour", 0))
         location = float(data.get("location", 0))
 
+        # NEW FEATURES
+        previous_amount = float(data.get("previous_amount", amount))
+        transaction_count = float(data.get("transaction_count", 1))
+        time_gap = float(data.get("time_gap", 1))
+
         # ==============================
-        # 🔥 CREATE 30 FEATURES
+        # FEATURE VECTOR (30 features)
         # ==============================
         features = np.zeros(30)
 
         features[0] = amount
         features[1] = hour
         features[2] = location
+        features[3] = previous_amount
+        features[4] = transaction_count
+        features[5] = time_gap
 
-        # Scale input
-        if scaler:
-            features_scaled = scaler.transform([features])
-        else:
-            features_scaled = [features]
+        # SCALE
+        features_scaled = scaler.transform([features]) if scaler else [features]
 
-        # ==============================
-        # 🤖 MODEL PREDICTION
-        # ==============================
+        # MODEL
         if model:
             prediction = model.predict(features_scaled)[0]
             probability = model.predict_proba(features_scaled)[0][1]
         else:
-            prediction = 1 if amount > 5000 else 0
-            probability = 0.7 if prediction == 1 else 0.2
+            probability = 0.7 if amount > 5000 else 0.2
+            prediction = 1 if probability > 0.5 else 0
 
-        # ==============================
-        # 🎯 RESULT
-        # ==============================
-        status = "FRAUD" if prediction == 1 else "SAFE"
         score = int(probability * 100)
+        status = "FRAUD" if prediction == 1 else "SAFE"
 
         # ==============================
-        # 💡 REASONS
+        # 🧠 RISK LEVEL
+        # ==============================
+        if score > 75:
+            risk = "HIGH RISK"
+        elif score > 40:
+            risk = "MEDIUM RISK"
+        else:
+            risk = "LOW RISK"
+
+        # ==============================
+        # 🤖 EXPLAINABLE AI
         # ==============================
         reasons = []
 
-        if amount > 5000:
-            reasons.append("High transaction amount")
+        if amount > previous_amount * 2:
+            reasons.append("Unusual spike in transaction amount")
+
+        if transaction_count > 5:
+            reasons.append("High transaction frequency")
 
         if hour < 6 or hour > 22:
-            reasons.append("Unusual transaction time")
+            reasons.append("Transaction at abnormal time")
 
         if location == 1:
-            reasons.append("Suspicious location")
+            reasons.append("Transaction from unfamiliar location")
+
+        if time_gap < 2:
+            reasons.append("Rapid consecutive transactions")
 
         if not reasons:
-            reasons.append("Normal behavior")
+            reasons.append("Normal transaction behavior")
 
         # ==============================
-        # 💾 SAVE TO MONGODB
+        # 🚨 AUTO ACTION
+        # ==============================
+        if score > 80:
+            action = "BLOCKED"
+        elif score > 50:
+            action = "FLAGGED"
+        else:
+            action = "ALLOWED"
+
+        # ==============================
+        # 💾 SAVE TO DB
         # ==============================
         if collection is not None:
             collection.insert_one({
                 "amount": amount,
                 "hour": hour,
                 "location": location,
+                "previous_amount": previous_amount,
+                "transaction_count": transaction_count,
+                "time_gap": time_gap,
                 "status": status,
-                "score": score
+                "risk": risk,
+                "score": score,
+                "action": action,
+                "time": datetime.now()
             })
 
-        # ==============================
-        # 📤 RESPONSE
-        # ==============================
         return jsonify({
             "status": status,
             "probability": score,
             "score": score,
+            "risk": risk,
+            "action": action,
             "reasons": reasons
         })
 
     except Exception as e:
         print("🔥 ERROR:", e)
         return jsonify({"error": str(e)}), 500
-
 
 # ==============================
 # 📊 GET DATA FOR DASHBOARD

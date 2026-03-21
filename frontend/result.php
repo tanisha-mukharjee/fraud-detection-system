@@ -12,9 +12,13 @@ $location = isset($_POST['location']) ? 1 : 0;
 
 // ✅ Prepare JSON for Flask
 $data = json_encode([
-    "amount" => (float)$amount,
-    "hour" => (int)$hour,
-    "location" => (int)$location
+    "amount" => $amount,
+    "hour" => $hour,
+    "location" => $location,
+
+    "previous_amount" => $_POST['previous_amount'] ?? $amount,
+    "transaction_count" => $_POST['transaction_count'] ?? 1,
+    "time_gap" => $_POST['time_gap'] ?? 1
 ]);
 
 // ✅ Send request to Flask
@@ -62,10 +66,18 @@ $class = ($status == "FRAUD") ? "fraud" : "safe";
 <p>Probability: <?php echo htmlspecialchars($probability); ?>%</p>
 <p>Score: <?php echo htmlspecialchars($score); ?></p>
 
-<h4>🤖 AI Reason:</h4>
+<h2 class="<?php echo $class; ?>"><?php echo $status; ?></h2>
+
+<p>Probability: <?php echo $probability; ?>%</p>
+<p>Score: <?php echo $score; ?></p>
+
+<p><strong>Risk Level:</strong> <?php echo $result['risk']; ?></p>
+<p><strong>Action:</strong> <?php echo $result['action']; ?></p>
+
+<h4>🤖 AI Reasons:</h4>
 <ul>
 <?php foreach ($reasons as $reason): ?>
-    <li style="color: orange;"><?php echo htmlspecialchars($reason); ?></li>
+<li style="color: orange;"><?php echo $reason; ?></li>
 <?php endforeach; ?>
 </ul>
 

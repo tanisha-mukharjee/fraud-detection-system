@@ -21,6 +21,9 @@
         <input type="number" name="amount" placeholder="Amount" required>
 
         <input type="number" name="hour" placeholder="Hour (0-23)" required>
+        <input type="number" name="previous_amount" placeholder="Previous Amount">
+        <input type="number" name="transaction_count" placeholder="Transaction Count">
+        <input type="number" name="time_gap" placeholder="Time Gap (minutes)">
 
         <div class="checkbox-group">
             <input type="checkbox" name="location" value="1" id="loc">
