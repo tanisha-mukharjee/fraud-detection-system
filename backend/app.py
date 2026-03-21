@@ -51,17 +51,17 @@ def predict():
     try:
         data = request.get_json()
 
-        # INPUTS
         amount = float(data.get("amount", 0))
         hour = float(data.get("hour", 0))
         location = float(data.get("location", 0))
+
         previous_amount = float(data.get("previous_amount", amount))
         transaction_count = float(data.get("transaction_count", 1))
         time_gap = float(data.get("time_gap", 1))
 
-        # ==============================
-        # 🔥 RULE-BASED FRAUD LOGIC
-        # ==============================
+        # ======================
+        # 🔥 FRAUD LOGIC
+        # ======================
         score = 0
 
         if amount > previous_amount * 2:
@@ -87,9 +87,9 @@ def predict():
 
         status = "FRAUD" if prediction == 1 else "SAFE"
 
-        # ==============================
-        # 🧠 RISK LEVEL
-        # ==============================
+        # ======================
+        # RISK
+        # ======================
         if score > 75:
             risk = "HIGH RISK"
         elif score > 40:
@@ -97,9 +97,9 @@ def predict():
         else:
             risk = "LOW RISK"
 
-        # ==============================
-        # 🤖 AI REASONS
-        # ==============================
+        # ======================
+        # REASONS
+        # ======================
         reasons = []
 
         if amount > previous_amount * 2:
@@ -112,17 +112,17 @@ def predict():
             reasons.append("Transaction at abnormal time")
 
         if location == 1:
-            reasons.append("Transaction from unfamiliar location")
+            reasons.append("Unfamiliar location")
 
         if time_gap < 2:
-            reasons.append("Rapid consecutive transactions")
+            reasons.append("Rapid transactions")
 
         if not reasons:
-            reasons.append("Normal transaction behavior")
+            reasons.append("Normal behavior")
 
-        # ==============================
-        # 🚨 ACTION
-        # ==============================
+        # ======================
+        # ACTION
+        # ======================
         if score > 80:
             action = "BLOCKED"
         elif score > 50:
@@ -130,27 +130,24 @@ def predict():
         else:
             action = "ALLOWED"
 
-        # ==============================
-        # 💾 SAVE TO DB
-        # ==============================
+        # ======================
+        # SAVE DB
+        # ======================
         if collection is not None:
             collection.insert_one({
                 "amount": amount,
                 "hour": hour,
                 "location": location,
-                "previous_amount": previous_amount,
-                "transaction_count": transaction_count,
-                "time_gap": time_gap,
                 "status": status,
-                "risk": risk,
                 "score": score,
+                "risk": risk,
                 "action": action,
                 "time": datetime.now()
             })
 
         return jsonify({
             "status": status,
-            "probability": int(probability * 100),
+            "probability": probability,
             "score": score,
             "risk": risk,
             "action": action,
@@ -160,7 +157,6 @@ def predict():
     except Exception as e:
         print("🔥 ERROR:", e)
         return jsonify({"error": str(e)}), 500
-
 # ==============================
 # 📊 GET DATA FOR DASHBOARD
 # ==============================
