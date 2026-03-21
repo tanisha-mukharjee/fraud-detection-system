@@ -98,7 +98,7 @@ function initCharts(){
 
 // ✅ Fetch data from Flask
 function fetchData() {
-    fetch("http://127.0.0.1:5000/get-data")
+    
     .then(res => res.json())
     .then(data => {
 
@@ -171,16 +171,22 @@ setInterval(fetchData, 3000);
 
 <script>
 function fetchData() {
-    fetch("get_data.php")
+    fetch("https://fraud-detection-system-jg0m.onrender.com/get-data")
     .then(res => res.json())
     .then(data => {
 
-        // Update cards
+        // 🚨 Fraud alert
+        if (data.fraud > lastFraudCount) {
+            alert("🚨 New Fraud Detected!");
+        }
+        lastFraudCount = data.fraud;
+
+        // Cards
         document.getElementById("fraudCount").innerText = data.fraud;
         document.getElementById("safeCount").innerText = data.safe;
         document.getElementById("total").innerText = data.fraud + data.safe;
 
-        // Update table
+        // Table
         let table = document.getElementById("tableData");
         table.innerHTML = "";
 
@@ -188,29 +194,28 @@ function fetchData() {
             table.innerHTML += `
                 <tr>
                     <td>${row.amount}</td>
-                    <td>${row.hour}</td>
-                    <td>${row.location}</td>
+                    <td>${row.hour ?? '-'}</td>
+                    <td>${row.location ?? '-'}</td>
                     <td style="color:${row.status=='FRAUD'?'red':'lightgreen'}">
                         ${row.status}
                     </td>
-                    <td>${row.score}</td>
+                    <td>${row.score ?? '-'}</td>
                 </tr>
             `;
         });
 
-        // Update charts (already present)
+        // Charts
         pieChart.data.datasets[0].data = [data.fraud, data.safe];
         pieChart.update();
 
         lineChart.data.labels = data.labels;
         lineChart.data.datasets[0].data = data.values;
         lineChart.update();
-
-    });
+    })
+    .catch(err => console.log("Error:", err));
 }
-
 setInterval(fetchData, 3000);
-fetchData();
+
 
 initCharts();
 setInterval(fetchData, 3000);
