@@ -1,38 +1,35 @@
 <?php
-if($_SERVER["REQUEST_METHOD"] == "POST"){
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    $data = [
-        "amount" => $_POST['amount'],
-        "hour" => $_POST['hour'],
-        "location" => $_POST['location'],
-        "previous_amount" => $_POST['previous_amount'],
-        "transaction_count" => $_POST['transaction_count'],
-        "time_gap" => $_POST['time_gap']
-    ];
+    $amount = $_POST['amount'];
+
+    $data = array(
+        "amount" => (float)$amount
+    );
 
     $url = "https://fraud-detection-system-jg0m.onrender.com/predict";
 
-    $options = [
-        "http" => [
-            "header"  => "Content-type: application/json\r\n",
-            "method"  => "POST",
-            "content" => json_encode($data),
-            "timeout" => 5
-        ]
-    ];
+    $ch = curl_init($url);
 
-    $context = stream_context_create($options);
-    $result = @file_get_contents($url, false, $context);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        'Content-Type: application/json'
+    ));
 
-    if($result === FALSE){
-        echo "<h2 style='color:red'>❌ Backend not reachable</h2>";
-        exit();
+    $response = curl_exec($ch);
+
+    if ($response === false) {
+        echo "❌ Backend not reachable";
+    } else {
+        $result = json_decode($response, true);
+        echo "<h2>Prediction: " . $result['prediction'] . "</h2>";
     }
 
-    $response = json_decode($result, true);
+    curl_close($ch);
 }
 ?>
-
 <!DOCTYPE html>
 <html>
 <head>
