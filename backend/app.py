@@ -206,7 +206,9 @@ def get_data():
     except Exception as e:
         return jsonify({"error": str(e)})
 
-
+@app.route('/')
+def home():
+    return "Fraud Detection API is Running 🚀"
 # ==============================
 # 🚀 RUN SERVER
 # ==============================
