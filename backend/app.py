@@ -5,7 +5,7 @@ import numpy as np
 from datetime import datetime
 import os
 from flask_cors import CORS
-CORS(app)
+
 app = Flask(__name__)
 
 # ==============================
