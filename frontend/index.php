@@ -15,7 +15,6 @@
     <h2>💳 Fraud Detection</h2>
     <p>By Tanisha Mukharjee</p>
 
-    <!-- ✅ CORRECT FORM -->
     <form action="result.php" method="POST">
 
         <input type="number" name="amount" placeholder="Amount" required>

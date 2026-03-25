@@ -1,4 +1,10 @@
 <?php
+if ($_SERVER["REQUEST_METHOD"] != "POST") {
+    echo "❌ Invalid access";
+    exit();
+}
+?>
+<?php
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $amount = $_POST['amount'];
